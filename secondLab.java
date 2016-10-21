@@ -36,7 +36,7 @@ public class secondLab {
             if(!isValid(s)) {
                 System.out.println("Incorrect data");
             } else {
-                return s;;
+                return s;
             }
         }
     }
