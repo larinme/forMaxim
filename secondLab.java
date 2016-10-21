@@ -1,110 +1,148 @@
+import java.io.InputStream;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.function.DoubleUnaryOperator;
 
 public class secondLab {
-    private static boolean exitMenu() {
-        Scanner sc = new Scanner(System.in);
-        int  menuItem = sc.nextInt();
-        if(menuItem == 1) {
-            return true;
-        } else {
-            return false;
+
+    private static final String INFO_PARAMS = "Entered data: a = {0}, b = {1}, c = {2}";
+
+    public static void main(String[] args) {
+
+        beginProgram();
+    }
+
+    private static void beginProgram() {
+
+        boolean doRepeat = true;
+
+        while (doRepeat) {
+
+            Map<String, Number> inputParams = getInputParams();
+
+            double a = (double) inputParams.get("a");
+            double b = (double) inputParams.get("b");
+            double e = (double) inputParams.get("e");
+            int n = (int) inputParams.get("functionNumber");
+
+            System.out.println(MessageFormat.format(INFO_PARAMS, a, b, e));
+
+            DoubleUnaryOperator doubleUnaryOperator = getFunction(n);
+            Map<String, Double> resultLeft = MethodOfRectangles.leftRectagles(doubleUnaryOperator, a, b, e);
+            Map<String, Double> resultAverage = MethodOfRectangles.averageRectagles(doubleUnaryOperator, a, b, e);
+            Map<String, Double> resultRight = MethodOfRectangles.rightRectagles(doubleUnaryOperator, a, b, e);
+
+            printResults(resultAverage);
+
+            System.out.println("Continue with new data?");
+            System.out.println("1. Yes");
+            System.out.println("2. No");
+            doRepeat = exitMenu();
         }
     }
-    private static void printResult(double[] result) {
-        for(int i = 0; i < result.length; i++) {
-            System.out.format("%6.4f\t\t  ", result[i]);
+
+    private static DoubleUnaryOperator getFunction(int n) {
+        DoubleUnaryOperator doubleUnaryOperator = null;
+        switch (n) {
+            case 1: {
+                doubleUnaryOperator = x -> (-Math.sqrt(x * x + 3 * x - 1) / x);
+                break;
+            }
+            case 2: {
+                doubleUnaryOperator = x -> Math.pow(x, 3);
+                break;
+            }
+            case 3: {
+                doubleUnaryOperator = x -> (8 + 2 * x - x * x);
+                break;
+            }
+            default: {
+                System.out.println("Incorrect n, Try again.");
+                break;
+            }
         }
-        System.out.println();
+        return doubleUnaryOperator;
     }
-    private static boolean isValid(String s) {
-        char[] chars = s.toCharArray();
+
+    private static Map<String, Number> getInputParams() {
+
+        Map<String, Number> values = new HashMap<>();
+
+        System.out.println("Input a and b > a: ");
+        System.out.print("a = ");
+        Double aParameter = Double.parseDouble(readParameter(System.in));
+        System.out.print("b = ");
+        Double bParameter = Double.parseDouble(readParameter(System.in));
+        if (aParameter > bParameter) {
+            double temp = bParameter;
+            bParameter = aParameter;
+            aParameter = temp;
+        }
+        System.out.println("Input e:");
+        Double epsilon = Double.parseDouble(readParameter(System.in));
+        System.out.println("Select function: ");
+        Integral.printIntegral();
+        Integer functionNumber = Integer.parseInt(readParameter(System.in));
+
+        values.put("a", aParameter);
+        values.put("b", bParameter);
+        values.put("e", epsilon);
+        values.put("functionNumber", functionNumber);
+
+        return values;
+    }
+
+    private static String readParameter(InputStream inputStream) {
+        Scanner scanner = new Scanner(inputStream);
+        boolean isNotNumber = true;
+        String inputString = "";
+        while (isNotNumber) {
+            inputString = scanner.nextLine().replace(',', '.');
+            if (!isValid(inputString)) {
+                System.out.println("Incorrect data");
+            } else {
+                isNotNumber = false;
+            }
+        }
+        return inputString;
+    }
+
+    private static boolean isValid(String inputString) {
+        char[] chars = inputString.toCharArray();
+
         int countOfComma = 0;
-        for(int i = 0; i < chars.length; i++) {
-            if(chars[i] == '.') {
+        for (int i = 0; i < chars.length; i++) {
+            if (chars[i] == '.') {
                 countOfComma++;
             }
-            if(!((int)chars[i] >= 47 && (int)chars[i] <= 57 || chars[i] == ' ' || countOfComma == 1)) {
+            if (!((int) chars[i] >= 47 && (int) chars[i] <= 57 || chars[i] == ' ' || countOfComma == 1)) {
                 return false;
             }
         }
         return true;
     }
-    private static String init() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            String s = scanner.nextLine().replace(',', '.');
-            if(!isValid(s)) {
-                System.out.println("Incorrect data");
-            } else {
-                return s;
-            }
+
+    private static void printResults(Map<String, Double> result) {
+        System.out.println("\t\tResult\t Count of rects\t\tError");
+        System.out.print("Left   \t");
+        //printInfo(resultLeft);
+        System.out.print("Average\t");
+        printInfo(result);
+        System.out.print("Right  \t");
+        //printInfo(resultRight);
+    }
+
+    private static void printInfo(Map<String, Double> result) {
+
+        for (Double value : result.values()) {
+            System.out.format("%6.4f\t\t  ", value);
         }
     }
 
-    public static void main(String[] args) {
+    private static boolean exitMenu() {
         Scanner sc = new Scanner(System.in);
-        MethodOfRectangles integral = new MethodOfRectangles();
-        int N = 3;
-        double[] resultLeft = new double[N];
-        double[] resultAverage = new double[N];
-        double[] resultRight = new double[N];
-        boolean exit = true;
-
-        while (exit) {
-            System.out.println("Input a and b > a: ");
-            System.out.print("a = ");
-            double a = Double.parseDouble(init());
-            System.out.print("b = ");
-            double b = Double.parseDouble(init());
-            if(a > b) {
-                double temp = b;
-                b = a;
-                a = temp;
-            }
-            System.out.println("Input e:");
-            double e = Double.parseDouble(init());
-            System.out.format("Entered data: a = %.2f; b = %.2f; e = %.5f\n", a, b, e);
-
-            System.out.println("Select function: ");
-            Integral.printIntegral();
-            int n = sc.nextInt();
-            switch (n) {
-                case 1: {
-                    resultLeft = integral.leftRectagles(x -> (-Math.sqrt(x*x+3*x-1)/x), a, b, e);
-                    resultAverage = integral.averageRectagles(x -> (-Math.sqrt(x*x+3*x-1)/x), a, b, e);
-                    resultRight = integral.rightRectagles(x -> (-Math.sqrt(x*x+3*x-1)/x), a, b, e);
-                    break;
-                }
-                case 2: {
-                    resultLeft = integral.leftRectagles(x -> Math.pow(x, 3), a, b, e);
-                    resultAverage = integral.averageRectagles(x -> Math.pow(x, 3), a, b, e);
-                    resultRight = integral.rightRectagles(x -> Math.pow(x, 3), a, b, e);
-                    break;
-                }
-                case 3: {
-                    resultLeft = integral.leftRectagles(x -> (8 + 2*x - x*x), a, b, e);
-                    resultAverage = integral.averageRectagles(x -> (8 + 2*x -x*x), a, b, e);
-                    resultRight = integral.rightRectagles(x -> (8 + 2*x - x*x), a, b, e);
-                    break;
-                }
-                default: {
-                    System.out.println("Incorrect n, Try again.");
-                    break;
-                }
-            }
-
-            System.out.println("\t\tResult\t Count of rects\t\tError");
-            System.out.print("Left   \t");
-            printResult(resultLeft);
-            System.out.print("Average\t");
-            printResult(resultAverage);
-            System.out.print("Right  \t");
-            printResult(resultRight);
-
-            System.out.println("Continue with new data?");
-            System.out.println("1. Yes");
-            System.out.println("2. No");
-            exit = exitMenu();
-        }
+        return sc.nextInt() == 1;
     }
 }
