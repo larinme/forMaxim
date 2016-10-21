@@ -5,11 +5,9 @@ public enum Integral {
 
     private String textIntegral;
 
-    private Integral(String textIntegral) { this.textIntegral = textIntegral; }
+    private Integral(String textIntegral) {  this.textIntegral = textIntegral;  }
 
-    public String getTextIntegral() {
-        return textIntegral;
-    }
+    public String getTextIntegral() {  return textIntegral;  }
     public static void printIntegral() {
         for(Integral integral: Integral.values()) {
             System.out.println(integral.getTextIntegral());
